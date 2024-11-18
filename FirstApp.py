@@ -35,10 +35,8 @@ def load_data():
 
 def create_donation_distribution_plot(df):
     fig = px.histogram(df, x='damt', nbins=50,
-                       title='Donation Amount Distribution',
-                       labels={'damt': 'Donation Amount', 'count': 'Frequency'})
-    fig.add_vline(x=df['damt'].median(), line_dash="dash", line_color="red",
-                  annotation_text="Median")
+                       title='Donation Amount Distribution',labels={'damt': 'Donation Amount', 'count': 'Frequency'})
+    fig.add_vline(x=df['damt'].median(), line_dash="dash", line_color="red",annotation_text="Median")
     return fig
 
 def create_financial_correlation_plot(df):
