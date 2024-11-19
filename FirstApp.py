@@ -1,4 +1,3 @@
-import os
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,13 +6,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-# Ensure all dependencies are installed
-try:
-    import plotly
-    import seaborn
-except ImportError:
-    os.system("pip install plotly seaborn")
 
 def load_data():
     # Simulate data based on observed distributions
@@ -35,8 +27,10 @@ def load_data():
 
 def create_donation_distribution_plot(df):
     fig = px.histogram(df, x='damt', nbins=50,
-                       title='Donation Amount Distribution',labels={'damt': 'Donation Amount', 'count': 'Frequency'})
-    fig.add_vline(x=df['damt'].median(), line_dash="dash", line_color="red",annotation_text="Median")
+                      title='Donation Amount Distribution',
+                      labels={'damt': 'Donation Amount', 'count': 'Frequency'})
+    fig.add_vline(x=df['damt'].median(), line_dash="dash", line_color="red",
+                  annotation_text="Median")
     return fig
 
 def create_financial_correlation_plot(df):
@@ -65,7 +59,7 @@ def create_family_size_analysis(df):
     
     fig.add_trace(
         go.Scatter(x=avg_donation['kids'], y=avg_donation['damt'],
-                   name="Average Donation", line=dict(color='red')),
+                  name="Average Donation", line=dict(color='red')),
         secondary_y=True,
     )
     
@@ -86,6 +80,48 @@ def main():
     # Sidebar filters
     st.sidebar.header('Filters')
     min_donation = st.sidebar.slider('Minimum Donation Amount',
-                                     float(df['damt'].min()),
-                                     float(df['damt'].max()),
-        
+                                   float(df['damt'].min()),
+                                   float(df['damt'].max()),
+                                   float(df['damt'].min()))
+    
+    selected_kids = st.sidebar.multiselect('Number of Children',
+                                         options=sorted(df['kids'].unique()),
+                                         default=sorted(df['kids'].unique()))
+    
+    # Filter data
+    filtered_df = df[
+        (df['damt'] >= min_donation) &
+        (df['kids'].isin(selected_kids))
+    ]
+    
+    # Key metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Donors", len(filtered_df))
+    with col2:
+        st.metric("Average Donation", f"${filtered_df['damt'].mean():.2f}")
+    with col3:
+        st.metric("Total Donations", f"${filtered_df['damt'].sum():.2f}")
+    
+    # Visualization 1: Donation Distribution
+    st.subheader("Donation Distribution Analysis")
+    st.plotly_chart(create_donation_distribution_plot(filtered_df))
+    
+    # Visualization 2: Financial Correlations
+    st.subheader("Financial Metrics Correlation")
+    st.plotly_chart(create_financial_correlation_plot(filtered_df))
+    
+    # Visualization 3: Family Size Analysis
+    st.subheader("Family Size Impact Analysis")
+    st.plotly_chart(create_family_size_analysis(filtered_df))
+    
+    # Additional insights
+    st.sidebar.markdown("""
+    ### Key Insights
+    1. Bimodal donation distribution
+    2. Strong financial metric correlations
+    3. Family size influences giving patterns
+    """)
+
+if __name__ == "__main__":
+    main()
